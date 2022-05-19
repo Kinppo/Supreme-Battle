@@ -49,6 +49,10 @@ public class InputManager : MonoBehaviour
                 {
                     Destroy(hit.transform.gameObject);
                     GameController.Instance.UpdateNaveMesh();
+
+                    if (!GameManager.Instance.selectedLevel.hasTutorial) return;
+                    if (GameManager.Instance.tutorialIndex is 1 or 3)
+                        GameManager.Instance.LoadTutorial();
                 });
     }
 
@@ -60,11 +64,11 @@ public class InputManager : MonoBehaviour
         var ray = cam.ScreenPointToRay(Input.mousePosition);
         if (!Physics.Raycast(ray, out hit, Mathf.Infinity)) return;
 
-        StartCoroutine(hit.transform.gameObject.layer == 9 && !fence.CheckColliding()
+        StartCoroutine(hit.transform.gameObject.layer == 9 && !fence.CheckColliding() && fence.CheckSize()
             ? fence.SetUpTransparency(fence.ReduceMaterialOpacity(fenceColors[1]))
             : fence.SetUpTransparency(fence.ReduceMaterialOpacity(fenceColors[0])));
 
-        fence.RotateFence(hit.point);
+        fence.RotateFence(new Vector3(hit.point.x, 0.5f, hit.point.z));
     }
 
     private void CheckClickUpEvent()
@@ -76,7 +80,7 @@ public class InputManager : MonoBehaviour
 
         if (fence == null) return;
 
-        if (Physics.Raycast(ray, out hit, Mathf.Infinity, handleMask) && !fence.CheckColliding())
+        if (Physics.Raycast(ray, out hit, Mathf.Infinity, handleMask) && !fence.CheckColliding() && fence.CheckSize())
         {
             StartCoroutine(fence.SetUpTransparency(fenceColors[1]));
             var pos = hit.transform.position;
@@ -84,6 +88,9 @@ public class InputManager : MonoBehaviour
             fence.gameObject.layer = 11;
             fence.coll.size += new Vector3(0, 0, -0.9f);
             GameController.Instance.UpdateNaveMesh();
+
+            if (GameManager.Instance.selectedLevel.hasTutorial && GameManager.Instance.tutorialIndex == 2)
+                GameManager.Instance.LoadTutorial();
         }
         else
         {

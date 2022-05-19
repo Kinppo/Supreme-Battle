@@ -4,6 +4,6 @@ public class BloodSplatter : MonoBehaviour
 {
     void Start()
     {
-        Destroy(gameObject, 5f);
+        Destroy(gameObject, 4f);
     }
 }

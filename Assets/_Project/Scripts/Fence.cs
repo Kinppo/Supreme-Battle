@@ -8,6 +8,7 @@ public class Fence : MonoBehaviour
     public float maxSize = 1.56f;
     [HideInInspector] public bool isDestroyed;
     private float sizeZ = 4.53f;
+    private float scaleZ;
     private Vector3 pointB;
     private RaycastHit hit;
 
@@ -26,9 +27,14 @@ public class Fence : MonoBehaviour
         var rot = Quaternion.LookRotation(separation);
         transform.rotation = rot;
 
-        var scaleZ = Vector3.Distance(pointB, pointA);
-        if (scaleZ > 0 && sizeZ > 0 && (scaleZ / sizeZ) < maxSize)
+        scaleZ = Vector3.Distance(pointB, pointA);
+        if (scaleZ > 0 && sizeZ > 0 && CheckSize())
             transform.localScale = new Vector3(1, 1, scaleZ / sizeZ);
+    }
+
+    public bool CheckSize()
+    {
+        return (scaleZ / sizeZ) < maxSize;
     }
 
     public Color32 ReduceMaterialOpacity(Color color)
@@ -59,7 +65,7 @@ public class Fence : MonoBehaviour
         if (!Physics.Linecast(transform.position, pointB, out hit, InputManager.Instance.fenceMask) &&
             !Physics.Linecast(coll.bounds.center + new Vector3(-1f, 0, -1f),
                 coll.bounds.center + new Vector3(1f, 0, 1f), out hit, InputManager.Instance.fenceMask)) return false;
-        
+
         return Vector3.Distance(hit.transform.position, transform.position) > 0;
     }
 

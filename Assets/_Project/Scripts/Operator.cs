@@ -18,7 +18,7 @@ public class Operator : MonoBehaviour
     public Operation operation;
     public TextMeshPro text;
     public new Renderer renderer;
-    private bool isTriggered;
+    private List<GameObject> triggered = new List<GameObject>();
 
     void Start()
     {
@@ -43,177 +43,167 @@ public class Operator : MonoBehaviour
 
     private void OnTriggerEnter(Collider collision)
     {
-        if (isTriggered || collision.gameObject.layer is not (6 or 7)) return;
-        isTriggered = true;
+        if (collision.gameObject.layer is not (6 or 7) || number <= 0 ||
+            triggered.Contains(collision.gameObject)) return;
+        triggered.Add(collision.gameObject);
 
         switch (operation)
         {
             case Operation.Multiplication:
-                Multiply(collision.gameObject.transform.position, collision);
+                Multiply(collision.gameObject);
                 break;
             case Operation.Subtract:
-                Subtract(collision.gameObject.layer);
+                Subtract(collision);
                 break;
             case Operation.Divide:
                 Divide(collision.gameObject.layer);
                 break;
             case Operation.Add:
-                Add(collision.gameObject.transform.position, collision);
+                Add(collision.gameObject);
                 break;
         }
-
-        transform.DOScale(0, 0.7f).SetEase(Ease.InBack).OnComplete(() => Destroy(gameObject));
     }
 
-    private void Multiply(Vector3 pos, Collider collision)
+    private void Multiply(GameObject agent)
     {
-        if (collision.gameObject.layer == 6)
+        var pos = agent.transform.position;
+
+        switch (agent.layer)
         {
-            var length = (number - 1) * Spawner.Instance.players.Count;
-
-            for (var i = 0; i < length; i++)
+            case 6:
             {
-                var obj = Instantiate(collision.gameObject, pos, Quaternion.identity).GetComponent<Player>();
-                obj.gameObject.transform.SetParent(Spawner.Instance.playersParent);
-                Spawner.Instance.players.Add(obj);
+                for (var i = 0; i < number - 1; i++)
+                {
+                    var obj = Instantiate(agent, pos, agent.transform.rotation);
+                    triggered.Add(obj);
 
-                // obj.UpdateDestination(Spawner.Instance.enemies.Count > 0
-                //     ? Spawner.Instance.enemies[0].gameObject.transform.position
-                //     : GameManager.Instance.selectedLevel.rounds.enemyTroops[GameManager.Instance.activeRound].agentBase
-                //         .position);
+                    var player = obj.GetComponent<Agent>();
+                    obj.gameObject.transform.SetParent(GameController.Instance.playersParent);
+                    GameController.Instance.players.Add(player);
 
-                obj.UpdateDestination(GameManager.Instance.selectedLevel.rounds
+                    player.UpdateDestination(GameManager.Instance.selectedLevel.rounds
+                        .enemyTroops[GameManager.Instance.activeRound].agentBase
+                        .transform.position);
+
+                    player.agentState = AgentState.Idle;
+                    player.ChangeAnimation(AgentState.Run);
+                }
+
+                break;
+            }
+            case 7:
+            {
+                for (var i = 0; i < number - 1; i++)
+                {
+                    var obj = Instantiate(agent, pos, agent.transform.rotation);
+                    triggered.Add(obj);
+
+                    var enemy = obj.GetComponent<Agent>();
+                    obj.gameObject.transform.SetParent(GameController.Instance.enemiesParent);
+                    GameController.Instance.enemies.Add(enemy);
+
+                    enemy.UpdateDestination(GameManager.Instance.selectedLevel.rounds
+                        .playerTroops[0].agentBase
+                        .transform.position);
+
+                    enemy.agentState = AgentState.Idle;
+                    enemy.ChangeAnimation(AgentState.Run);
+                }
+                break;
+            }
+        }
+    }
+
+    private void Subtract(Collider collision)
+    {
+        number--;
+        text.text = symbols[(int) operation] + number;
+        StartCoroutine(collision.GetComponent<Agent>().DestroyAgent(0.25f, 0.2f));
+
+        if (number == 0) DestroyOperator();
+    }
+
+    private void Add(GameObject agent)
+    {
+        var pos = agent.transform.position;
+
+        switch (agent.layer)
+        {
+            case 6:
+            {
+                var obj = Instantiate(agent, pos, agent.transform.rotation);
+                triggered.Add(obj);
+
+                var player = obj.GetComponent<Agent>();
+                obj.gameObject.transform.SetParent(GameController.Instance.playersParent);
+                GameController.Instance.players.Add(player);
+
+                player.UpdateDestination(GameManager.Instance.selectedLevel.rounds
                     .enemyTroops[GameManager.Instance.activeRound].agentBase
-                    .position);
+                    .transform.position);
 
-                obj.agentState = AgentState.Idle;
-                obj.ChangeAnimation(AgentState.Run);
+                player.agentState = AgentState.Idle;
+                player.ChangeAnimation(AgentState.Run);
+                number--;
+                text.text = symbols[(int) operation] + number;
+                break;
             }
-        }
-        else if (collision.gameObject.layer == 7)
-        {
-            var length = (number - 1) * Spawner.Instance.enemies.Count;
-
-            for (var i = 0; i < length; i++)
+            case 7:
             {
-                var obj = Instantiate(collision.gameObject, pos, Quaternion.identity).GetComponent<Enemy>();
-                obj.gameObject.transform.SetParent(Spawner.Instance.enemiesParent);
-                Spawner.Instance.enemies.Add(obj);
+                var obj = Instantiate(agent, pos, agent.transform.rotation);
+                triggered.Add(obj);
 
-                obj.UpdateDestination(Spawner.Instance.players.Count > 0
-                    ? Spawner.Instance.players[0].gameObject.transform.position
-                    : GameManager.Instance.selectedLevel.rounds.playerTroops[0].agentBase
-                        .position);
+                var enemy = obj.GetComponent<Agent>();
+                obj.gameObject.transform.SetParent(GameController.Instance.enemiesParent);
+                GameController.Instance.enemies.Add(enemy);
 
-                obj.agentState = AgentState.Idle;
-                obj.ChangeAnimation(AgentState.Run);
+                enemy.UpdateDestination(GameManager.Instance.selectedLevel.rounds
+                    .playerTroops[0].agentBase
+                    .transform.position);
+
+                enemy.agentState = AgentState.Idle;
+                enemy.ChangeAnimation(AgentState.Run);
+                number--;
+                text.text = symbols[(int) operation] + number;
+                break;
             }
         }
-    }
 
-    private void Subtract(int layer)
-    {
-        if (layer == 6)
-        {
-            var players = Spawner.Instance.players;
-
-            for (int i = 0; i <= number - 1; i++)
-            {
-                if (players.Count > 0)
-                {
-                    Destroy(Spawner.Instance.players[players.Count - 1].gameObject);
-                    Instantiate(Spawner.Instance.playerBlood,
-                        Spawner.Instance.players[players.Count - 1].gameObject.transform.position,
-                        Quaternion.Euler(90, 0, 0));
-                    Spawner.Instance.players.RemoveAt(players.Count - 1);
-                }
-            }
-        }
-        else if (layer == 7)
-        {
-            var enemies = Spawner.Instance.enemies;
-
-            for (int i = 0; i <= number - 1; i++)
-            {
-                if (enemies.Count > 0)
-                {
-                    Destroy(Spawner.Instance.enemies[enemies.Count - 1].gameObject);
-                    Instantiate(Spawner.Instance.enemyBlood,
-                        Spawner.Instance.enemies[enemies.Count - 1].gameObject.transform.position,
-                        Quaternion.Euler(90, 0, 0));
-                    Spawner.Instance.enemies.RemoveAt(enemies.Count - 1);
-                }
-            }
-        }
-    }
-
-    private void Add(Vector3 pos, Collider collision)
-    {
-        if (collision.gameObject.layer == 6)
-        {
-            for (var i = 0; i < number; i++)
-            {
-                var obj = Instantiate(collision.gameObject, pos, Quaternion.identity).GetComponent<Player>();
-                obj.gameObject.transform.SetParent(Spawner.Instance.playersParent);
-                Spawner.Instance.players.Add(obj);
-
-                obj.UpdateDestination(Spawner.Instance.enemies.Count > 0
-                    ? Spawner.Instance.enemies[0].gameObject.transform.position
-                    : GameManager.Instance.selectedLevel.rounds.enemyTroops[GameManager.Instance.activeRound].agentBase
-                        .position);
-
-                obj.agentState = AgentState.Idle;
-                obj.ChangeAnimation(AgentState.Run);
-            }
-        }
-        else if (collision.gameObject.layer == 7)
-        {
-            for (var i = 0; i < number; i++)
-            {
-                var obj = Instantiate(collision.gameObject, pos, Quaternion.identity).GetComponent<Enemy>();
-                obj.gameObject.transform.SetParent(Spawner.Instance.enemiesParent);
-                Spawner.Instance.enemies.Add(obj);
-
-                obj.UpdateDestination(Spawner.Instance.players.Count > 0
-                    ? Spawner.Instance.players[0].gameObject.transform.position
-                    : GameManager.Instance.selectedLevel.rounds.playerTroops[0].agentBase
-                        .position);
-
-                obj.agentState = AgentState.Idle;
-                obj.ChangeAnimation(AgentState.Run);
-            }
-        }
+        if (number == 0) DestroyOperator();
     }
 
     private void Divide(int layer)
     {
         if (layer == 6)
         {
-            var players = Spawner.Instance.players;
+            var players = GameController.Instance.players;
             int quotient = players.Count / number;
 
             for (int i = players.Count - 1; i >= 0; i--)
             {
                 if (i >= quotient)
                 {
-                    Destroy(Spawner.Instance.players[i].gameObject);
-                    Spawner.Instance.players.RemoveAt(i);
+                    StartCoroutine(GameController.Instance.players[i].DestroyAgent(0));
                 }
             }
         }
         else if (layer == 7)
         {
-            var enemies = Spawner.Instance.enemies;
+            var enemies = GameController.Instance.enemies;
             int quotient = enemies.Count / number;
 
             for (int i = enemies.Count - 1; i >= 0; i--)
             {
                 if (i >= quotient)
                 {
-                    Destroy(Spawner.Instance.enemies[i].gameObject);
-                    Spawner.Instance.enemies.RemoveAt(i);
+                    StartCoroutine(GameController.Instance.enemies[i].DestroyAgent(0));
                 }
             }
         }
+    }
+
+    private void DestroyOperator()
+    {
+        transform.DOScale(0, 0.7f).SetEase(Ease.InBack).OnComplete(() => Destroy(gameObject));
     }
 }

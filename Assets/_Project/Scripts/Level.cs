@@ -7,7 +7,8 @@ public class Troop
 {
     public Agent agent;
     public int number;
-    public Transform agentBase;
+    public Base agentBase;
+    public float basePower;
 }
 
 [Serializable]
@@ -20,4 +21,5 @@ public class Round
 public class Level : MonoBehaviour
 {
     public Round rounds;
+    public bool hasTutorial;
 }

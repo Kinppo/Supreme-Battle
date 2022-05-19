@@ -7,6 +7,9 @@ public class AudioManager : MonoBehaviour
     public AudioSource source;
     public AudioClip click;
     public AudioClip gemCollect;
+    public AudioClip kill;
+    public AudioClip run;
+    public AudioClip upgrade;
     [HideInInspector] public bool isHeavyVibration;
 
     void Awake()

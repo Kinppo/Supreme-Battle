@@ -1631,6 +1631,7 @@ GameObject:
   - component: {fileID: 8322019482009758924}
   - component: {fileID: 8428339219220198469}
   - component: {fileID: 8428339219220198468}
+  - component: {fileID: -2442290910680098343}
   - component: {fileID: 8428339219220198470}
   - component: {fileID: 8662128580871992949}
   m_Layer: 6
@@ -1667,10 +1668,10 @@ Rigidbody:
   m_Mass: 1
   m_Drag: 0
   m_AngularDrag: 0.05
-  m_UseGravity: 0
-  m_IsKinematic: 1
+  m_UseGravity: 1
+  m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 116
+  m_Constraints: 122
   m_CollisionDetection: 0
 --- !u!136 &8428339219220198468
 CapsuleCollider:
@@ -1681,6 +1682,20 @@ CapsuleCollider:
   m_GameObject: {fileID: 8662128580871992950}
   m_Material: {fileID: 0}
   m_IsTrigger: 1
+  m_Enabled: 1
+  m_Radius: 0.24788189
+  m_Height: 1.6342225
+  m_Direction: 1
+  m_Center: {x: 0, y: 0.82211125, z: 0}
+--- !u!136 &-2442290910680098343
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8662128580871992950}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
   m_Enabled: 1
   m_Radius: 0.24788189
   m_Height: 1.6342225
@@ -1697,9 +1712,9 @@ NavMeshAgent:
   m_AgentTypeID: 0
   m_Radius: 0.25
   m_Speed: 2.5
-  m_Acceleration: 8
-  avoidancePriority: 50
-  m_AngularSpeed: 120
+  m_Acceleration: 10
+  avoidancePriority: 0
+  m_AngularSpeed: 600
   m_StoppingDistance: 0
   m_AutoTraverseOffMeshLink: 1
   m_AutoBraking: 1
@@ -1707,7 +1722,7 @@ NavMeshAgent:
   m_Height: 2
   m_BaseOffset: 0
   m_WalkableMask: 4294967295
-  m_ObstacleAvoidanceType: 4
+  m_ObstacleAvoidanceType: 1
 --- !u!114 &8662128580871992949
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1721,11 +1736,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   agentState: 0
+  agentType: 0
   agent: {fileID: 8428339219220198470}
   animator: {fileID: 8428339218797691476}
+  renderer: {fileID: 1387518916128352851}
   coll: {fileID: 8428339219220198468}
+  rb: {fileID: 8428339219220198469}
   health: 1
   damage: 1
+  speed: 2
+  detectionRange: 0.75
+  destination: {x: 0, y: 0, z: 0}
+  destinationBase: {x: 0, y: 0, z: 0}
 --- !u!1 &8738900974389393667
 GameObject:
   m_ObjectHideFlags: 0
