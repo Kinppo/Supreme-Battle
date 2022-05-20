@@ -16,9 +16,9 @@ MonoBehaviour:
   clientTokens:
   - 
   appIds:
-  - 0
+  - 526390102527423
   appLabels:
-  - App Name
+  - SupremeBattle
   cookie: 1
   logging: 1
   status: 1

@@ -53,7 +53,7 @@ public class Fence : MonoBehaviour
             currentTime += Time.deltaTime;
             var t = currentTime / cycleTime;
 
-            if (isDestroyed) break;
+            if (renderer == null) break;
             var currentColor = Color.Lerp(renderer.material.color, color, t);
             renderer.material.color = currentColor;
             yield return null;

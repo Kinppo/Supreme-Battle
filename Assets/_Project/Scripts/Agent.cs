@@ -66,7 +66,7 @@ public class Agent : MonoBehaviour
 
     public void UpdateDestination(Vector3 pos)
     {
-        if (agent == null || !agent.enabled) return;
+        if (!agent.enabled) return;
         agent.SetDestination(pos);
         destination = pos;
     }
@@ -118,7 +118,7 @@ public class Agent : MonoBehaviour
 
     private void DetectFence()
     {
-        if (agent == null || !agent.enabled) return;
+        if (!agent.enabled) return;
 
         if (agent.remainingDistance < 1.5f)
         {
@@ -142,7 +142,7 @@ public class Agent : MonoBehaviour
         }
     }
 
-    public IEnumerator DestroyAgent(float time, float posZ = 0)
+    public IEnumerator DestroyAgent(float time, float posZ = 0, bool isBaseDestroy = false)
     {
         yield return new WaitForSeconds(time);
 
@@ -159,6 +159,7 @@ public class Agent : MonoBehaviour
                 transform.position + new Vector3(0, posZ, 0),
                 Quaternion.identity);
             arr.Remove(this);
+            if (!isBaseDestroy) AudioManager.Instance.PlaySound(AudioManager.Instance.kill);
         }
 
         if (GameManager.gameState == GameState.Play && agentType == AgentType.Player && arr.Count <= 0)
@@ -215,7 +216,7 @@ public class Agent : MonoBehaviour
                 GameController.Instance.players.Add(this);
             else
                 GameController.Instance.enemies.Add(this);
-            
+
             break;
         }
     }

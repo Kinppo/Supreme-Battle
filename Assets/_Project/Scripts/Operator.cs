@@ -81,12 +81,14 @@ public class Operator : MonoBehaviour
                     obj.gameObject.transform.SetParent(GameController.Instance.playersParent);
                     GameController.Instance.players.Add(player);
 
-                    player.UpdateDestination(GameManager.Instance.selectedLevel.rounds
+                    player.destinationBase = GameManager.Instance.selectedLevel.rounds
                         .enemyTroops[GameManager.Instance.activeRound].agentBase
-                        .transform.position);
+                        .transform.position + new Vector3(0, 0, 1.5f);
+                    player.UpdateDestination(player.destinationBase);
 
                     player.agentState = AgentState.Idle;
                     player.ChangeAnimation(AgentState.Run);
+                    AudioManager.Instance.PlaySound(AudioManager.Instance.kill);
                 }
 
                 break;
@@ -102,13 +104,15 @@ public class Operator : MonoBehaviour
                     obj.gameObject.transform.SetParent(GameController.Instance.enemiesParent);
                     GameController.Instance.enemies.Add(enemy);
 
-                    enemy.UpdateDestination(GameManager.Instance.selectedLevel.rounds
-                        .playerTroops[0].agentBase
-                        .transform.position);
+                    enemy.destinationBase = GameManager.Instance.selectedLevel.rounds.playerTroops[0].agentBase
+                        .transform.position + new Vector3(0, 0, -1.5f);
+                    enemy.UpdateDestination(enemy.destinationBase);
 
                     enemy.agentState = AgentState.Idle;
                     enemy.ChangeAnimation(AgentState.Run);
+                    AudioManager.Instance.PlaySound(AudioManager.Instance.kill);
                 }
+
                 break;
             }
         }
@@ -118,7 +122,7 @@ public class Operator : MonoBehaviour
     {
         number--;
         text.text = symbols[(int) operation] + number;
-        StartCoroutine(collision.GetComponent<Agent>().DestroyAgent(0.25f, 0.2f));
+        StartCoroutine(collision.GetComponent<Agent>().DestroyAgent(0.2f, 0.2f));
 
         if (number == 0) DestroyOperator();
     }
@@ -126,6 +130,7 @@ public class Operator : MonoBehaviour
     private void Add(GameObject agent)
     {
         var pos = agent.transform.position;
+        if (number <= 0) return;
 
         switch (agent.layer)
         {
@@ -138,14 +143,16 @@ public class Operator : MonoBehaviour
                 obj.gameObject.transform.SetParent(GameController.Instance.playersParent);
                 GameController.Instance.players.Add(player);
 
-                player.UpdateDestination(GameManager.Instance.selectedLevel.rounds
+                player.destinationBase = GameManager.Instance.selectedLevel.rounds
                     .enemyTroops[GameManager.Instance.activeRound].agentBase
-                    .transform.position);
+                    .transform.position + new Vector3(0, 0, 1.5f);
+                player.UpdateDestination(player.destinationBase);
 
                 player.agentState = AgentState.Idle;
                 player.ChangeAnimation(AgentState.Run);
                 number--;
                 text.text = symbols[(int) operation] + number;
+                AudioManager.Instance.PlaySound(AudioManager.Instance.kill);
                 break;
             }
             case 7:
@@ -157,14 +164,15 @@ public class Operator : MonoBehaviour
                 obj.gameObject.transform.SetParent(GameController.Instance.enemiesParent);
                 GameController.Instance.enemies.Add(enemy);
 
-                enemy.UpdateDestination(GameManager.Instance.selectedLevel.rounds
-                    .playerTroops[0].agentBase
-                    .transform.position);
+                enemy.destinationBase = GameManager.Instance.selectedLevel.rounds.playerTroops[0].agentBase
+                    .transform.position + new Vector3(0, 0, -1.5f);
+                enemy.UpdateDestination(enemy.destinationBase);
 
                 enemy.agentState = AgentState.Idle;
                 enemy.ChangeAnimation(AgentState.Run);
                 number--;
                 text.text = symbols[(int) operation] + number;
+                AudioManager.Instance.PlaySound(AudioManager.Instance.kill);
                 break;
             }
         }
@@ -204,6 +212,6 @@ public class Operator : MonoBehaviour
 
     private void DestroyOperator()
     {
-        transform.DOScale(0, 0.7f).SetEase(Ease.InBack).OnComplete(() => Destroy(gameObject));
+        transform.DOScale(0, 0.5f).SetEase(Ease.InBack).OnComplete(() => Destroy(gameObject));
     }
 }

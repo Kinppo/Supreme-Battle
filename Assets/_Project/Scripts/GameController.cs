@@ -18,26 +18,12 @@ public class GameController : MonoBehaviour
     [HideInInspector] public Transform playersParent;
     [HideInInspector] public List<Agent> players = new List<Agent>();
     [HideInInspector] public List<Agent> enemies = new List<Agent>();
-    private Round rounds;
 
     void Awake()
     {
         Instance = this;
-        rounds = GameManager.Instance.selectedLevel.rounds;
         playersParent = new GameObject("Players Parent").transform;
         enemiesParent = new GameObject("Enemies Parent").transform;
-
-        SpawnPlayers(rounds.playerTroops[0]);
-        SpawnEnemies(rounds.enemyTroops[0]);
-        UpdateNaveMesh();
-    }
-
-    private void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            players[0].ChangeAnimation(AgentState.Fight);
-        }
     }
 
     public void UpdateNaveMesh()
@@ -69,12 +55,14 @@ public class GameController : MonoBehaviour
             agent.ChangeAnimation(AgentState.Win);
     }
 
+    private int test2 = 0;
+
     public void SpawnPlayers(Troop troop)
     {
         for (int i = 0; i < troop.number; i++)
         {
             var pos = troop.agentBase.transform.position +
-                      new Vector3(Random.Range(-1f, 1f), 0, +Random.Range(1.5f, 2.5f));
+                      new Vector3(Random.Range(-1f, 1f), 0, +Random.Range(1f, 2f));
             var obj = Instantiate(troop.agent, pos, Quaternion.identity);
             obj.name = "Players " + i;
 
@@ -83,7 +71,7 @@ public class GameController : MonoBehaviour
 
             obj.destinationBase = GameManager.Instance.selectedLevel.rounds
                 .enemyTroops[GameManager.Instance.activeRound].agentBase
-                .transform.position;
+                .transform.position + new Vector3(0, 0, 1.5f);
             obj.UpdateDestination(obj.destinationBase);
             obj.ChangeAnimation(AgentState.Run);
         }
@@ -94,7 +82,7 @@ public class GameController : MonoBehaviour
         for (int i = 0; i < troop.number; i++)
         {
             var pos = troop.agentBase.transform.position +
-                      new Vector3(Random.Range(-2f, 2f), 0, +Random.Range(-1.5f, -3f));
+                      new Vector3(Random.Range(-2f, 2f), 0, +Random.Range(-1f, -1.5f));
             var obj = Instantiate(troop.agent, pos, Quaternion.Euler(0, 180, 0));
             obj.name = "Enemy " + i;
 
@@ -102,7 +90,7 @@ public class GameController : MonoBehaviour
             enemies.Add(obj);
 
             obj.destinationBase = GameManager.Instance.selectedLevel.rounds.playerTroops[0].agentBase
-                .transform.position;
+                .transform.position + new Vector3(0, 0, -1.5f);
             obj.UpdateDestination(obj.destinationBase);
             obj.ChangeAnimation(AgentState.Run);
         }

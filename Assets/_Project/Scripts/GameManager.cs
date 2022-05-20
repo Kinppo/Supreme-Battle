@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using Beebyte.Obfuscator;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Random = UnityEngine.Random;
@@ -21,6 +20,7 @@ public class GameManager : MonoBehaviour
     public ParticleSystem confetti;
     public int health, damage;
     public float speed;
+    public Material fog;
     public List<Color32> operatorColors = new List<Color32>();
     public List<Color32> colors = new List<Color32>();
     public List<Level> levels = new List<Level>();
@@ -68,7 +68,6 @@ public class GameManager : MonoBehaviour
         TinySauce.OnGameFinished(false, 1, level.ToString());
     }
 
-    [SkipRename]
     public void Restart()
     {
         AudioManager.Instance.Vibrate();
@@ -76,7 +75,6 @@ public class GameManager : MonoBehaviour
         SceneManager.LoadScene(0);
     }
 
-    [SkipRename]
     public void Next()
     {
         AudioManager.Instance.Vibrate();
@@ -86,7 +84,7 @@ public class GameManager : MonoBehaviour
         SceneManager.LoadScene(0);
         LoadLevel();
     }
-
+    
     private void LoadLevel()
     {
         var l = level;
@@ -101,10 +99,28 @@ public class GameManager : MonoBehaviour
         foreach (var round in selectedLevel.rounds.enemyTroops)
             round.agentBase.power = round.basePower;
 
+        fog.SetColor("_BaseColor", colors[SelectColor(l)]);
+
+        var rounds = selectedLevel.rounds;
+        GameController.Instance.UpdateNaveMesh();
+        GameController.Instance.SpawnPlayers(rounds.playerTroops[0]);
+        GameController.Instance.SpawnEnemies(rounds.enemyTroops[0]);
         if (selectedLevel.hasTutorial) LoadTutorial();
     }
 
-    [SkipRename]
+    private static int SelectColor(int l)
+    {
+        var index = 0;
+        if (l is > 3 and < 7)
+            index = 1;
+        else if (l is > 6 and < 9)
+            index = 2;
+        else if (l >= 9) index = 3;
+
+        return index;
+    }
+
+
     public void UpgradeDamage()
     {
         var dp = damage * 10 + 5;
@@ -114,9 +130,9 @@ public class GameManager : MonoBehaviour
         UIManager.Instance.SetUpgradePrices();
         PlayerPrefs.SetInt("damage", damage);
         PlayerPrefs.SetInt("reward", reward);
+        AudioManager.Instance.PlaySound(AudioManager.Instance.upgrade);
     }
 
-    [SkipRename]
     public void UpgradeSpeed()
     {
         var sp = (int) Mathf.Round(((speed - 2) * 100) + 5);
@@ -126,9 +142,9 @@ public class GameManager : MonoBehaviour
         UIManager.Instance.SetUpgradePrices();
         PlayerPrefs.SetFloat("speed", speed);
         PlayerPrefs.SetInt("reward", reward);
+        AudioManager.Instance.PlaySound(AudioManager.Instance.upgrade);
     }
 
-    [SkipRename]
     public void UpgradeHealth()
     {
         var hp = health * 10 + 5;
@@ -138,6 +154,7 @@ public class GameManager : MonoBehaviour
         UIManager.Instance.SetUpgradePrices();
         PlayerPrefs.SetInt("health", health);
         PlayerPrefs.SetInt("reward", reward);
+        AudioManager.Instance.PlaySound(AudioManager.Instance.upgrade);
     }
 
     public void LoadTutorial()

@@ -73,7 +73,7 @@ public class UIManager : MonoBehaviour
         levelReward += 1;
         PlayerPrefs.SetInt("reward", GameManager.Instance.reward);
         InstantiateGem();
-        rewardText.text = GameManager.Instance.reward.ToString();
+        AudioManager.Instance.PlaySound(AudioManager.Instance.gemCollect);
     }
 
     private void InstantiateGem()
@@ -86,8 +86,9 @@ public class UIManager : MonoBehaviour
             .SetEase(Ease.InBack)
             .OnComplete(() =>
             {
-                gem.gameObject.SetActive(false);
+                Destroy(gem);
                 gemIcon.DOScale(1.25f, 0.3f).OnComplete(() => { gemIcon.DOScale(1f, 0.3f); });
+                rewardText.text = GameManager.Instance.reward.ToString();
             });
     }
 

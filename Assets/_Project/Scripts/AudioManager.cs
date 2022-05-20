@@ -1,4 +1,6 @@
+using System;
 using UnityEngine;
+
 //using Lofelt.NiceVibrations;
 
 public class AudioManager : MonoBehaviour
@@ -11,10 +13,17 @@ public class AudioManager : MonoBehaviour
     public AudioClip run;
     public AudioClip upgrade;
     [HideInInspector] public bool isHeavyVibration;
+    private float timePlaying;
 
     void Awake()
     {
         Instance = this;
+    }
+
+    private void Update()
+    {
+        if (source.isPlaying)
+            timePlaying += Time.deltaTime;
     }
 
     public void Vibrate()
@@ -30,6 +39,7 @@ public class AudioManager : MonoBehaviour
 
     public void PlaySound(AudioClip clip)
     {
+        if (source.clip != null && timePlaying < source.clip.length) return;
         source.clip = clip;
         source.Play();
     }
