@@ -3,6 +3,7 @@ using DG.Tweening;
 using TMPro;
 using Unity.Mathematics;
 using UnityEngine;
+using System.Collections;
 
 public class UIManager : MonoBehaviour
 {
@@ -12,9 +13,11 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject playPanel;
     [SerializeField] private GameObject winPanel;
     [SerializeField] private GameObject losePanel;
+    [SerializeField] private GameObject upgradePanel;
     [Header("Texts")] public TextMeshProUGUI levelText;
     public TextMeshProUGUI rewardText;
     public TextMeshProUGUI rewardWinText;
+    public TextMeshProUGUI armyPrice;
     public TextMeshProUGUI damagePrice;
     public TextMeshProUGUI speedPrice;
     public TextMeshProUGUI healthPrice;
@@ -24,6 +27,7 @@ public class UIManager : MonoBehaviour
     private int levelReward;
     private bool rewardTextIsAnimating;
     private Vector3 gemIconPosition;
+    public GameObject videoHand;
 
     private void Awake()
     {
@@ -46,6 +50,7 @@ public class UIManager : MonoBehaviour
         playPanel.SetActive(false);
         winPanel.SetActive(false);
         losePanel.SetActive(false);
+        upgradePanel.SetActive(false);
 
         switch (state)
         {
@@ -55,12 +60,18 @@ public class UIManager : MonoBehaviour
             case GameState.Play:
                 playPanel.SetActive(true);
                 break;
+            case GameState.Upgrade:
+                upgradePanel.SetActive(true);
+                SetUpgradePrices();
+                break;
             case GameState.Win:
                 winPanel.SetActive(true);
                 SetUpgradePrices();
+                StartCoroutine(HidePreviousScene());
                 break;
             case GameState.Lose:
                 losePanel.SetActive(true);
+                StartCoroutine(HidePreviousScene());
                 break;
         }
 
@@ -109,16 +120,53 @@ public class UIManager : MonoBehaviour
     public void SetUpgradePrices()
     {
         rewardWinText.text = GameManager.Instance.reward.ToString();
+        rewardText.text = GameManager.Instance.reward.ToString();
         var r = GameManager.Instance.reward;
-        var dp = GameManager.Instance.damage * 10 + 5;
-        var sp = Mathf.Round(((GameManager.Instance.speed - 2) * 100) + 5);
-        var hp = GameManager.Instance.health * 10 + 5;
-        damagePrice.text = dp.ToString();
-        speedPrice.text = sp.ToString();
-        healthPrice.text = hp.ToString();
+        //var dp = GameManager.Instance.damage * 10 + 5;
+        //var hp = GameManager.Instance.health * 10 + 5;
 
-        if (dp > r) damagePrice.color = Color.red;
+        var sp = Mathf.Round(((GameManager.Instance.speed - 2) * 100) + 5);
+        var ap = GameManager.Instance.soldiersNumber * 10 + 5;
+        armyPrice.text = ap.ToString();
+        speedPrice.text = sp.ToString();
+
+        //damagePrice.text = dp.ToString();
+        //healthPrice.text = hp.ToString();
+
+        //if (dp > r) damagePrice.color = Color.red;
+        //if (hp > r) healthPrice.color = Color.red;
         if (sp > r) speedPrice.color = Color.red;
-        if (hp > r) healthPrice.color = Color.red;
+        if (ap > r) armyPrice.color = Color.red;
+    }
+
+    private IEnumerator HidePreviousScene()
+    {
+        yield return new WaitForSeconds(1.3f);
+        GameManager.Instance.selectedLevel.gameObject.SetActive(false);
+    }
+
+    //*** Video Capturing Hand Follower
+    private void Update()
+    {
+        videoHand.transform.LookAt(videoHand.transform.position + Camera.main.transform.forward);
+
+        if (Input.GetMouseButtonDown(0)) videoHand.SetActive(true);
+
+        if (Input.GetMouseButton(0))
+        {
+            var pos = Camera.main.ScreenToWorldPoint(Input.mousePosition +
+                                                     new Vector3(0, 0, Camera.main.transform.position.y));
+            videoHand.transform.position = pos + new Vector3(0, -1f, 0);
+
+            if (videoHand.transform.position.y < 1)
+            {
+                print(videoHand.transform.position);
+                videoHand.transform.position =
+                    new Vector3(videoHand.transform.position.x, 1f, videoHand.transform.position.z);
+            }
+               
+        }
+
+        if (Input.GetMouseButtonUp(0)) videoHand.SetActive(false);
     }
 }

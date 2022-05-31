@@ -30,6 +30,7 @@ public class Agent : MonoBehaviour
     public new Renderer renderer;
     public CapsuleCollider coll;
     public Rigidbody rb;
+    public ParticleSystem blastEffect;
     public float health;
     public float damage;
     public float speed;
@@ -164,6 +165,8 @@ public class Agent : MonoBehaviour
 
         if (GameManager.gameState == GameState.Play && agentType == AgentType.Player && arr.Count <= 0)
             GameManager.Instance.Lose();
+        else if (GameManager.gameState == GameState.Play && agentType == AgentType.Enemy && arr.Count <= 0)
+            GameController.Instance.SetAgentsDestinationToBase();
     }
 
     private void DetectEnemy()

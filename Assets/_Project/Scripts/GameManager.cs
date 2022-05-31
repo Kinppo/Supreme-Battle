@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -9,6 +10,7 @@ public enum GameState
     Start,
     Build,
     Play,
+    Upgrade,
     Lose,
     Win
 }
@@ -18,7 +20,7 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance { get; protected set; }
     public static GameState gameState = GameState.Start;
     public ParticleSystem confetti;
-    public int health, damage;
+    public int health, damage, soldiersNumber;
     public float speed;
     public Material fog;
     public List<Color32> operatorColors = new List<Color32>();
@@ -28,7 +30,8 @@ public class GameManager : MonoBehaviour
     [HideInInspector] public int level, reward;
     [HideInInspector] public int activeRound;
     [HideInInspector] public int tutorialIndex;
-
+    private int isPlayed;
+    
     void Awake()
     {
         Instance = this;
@@ -37,11 +40,22 @@ public class GameManager : MonoBehaviour
         speed = PlayerPrefs.GetFloat("speed", 2.1f);
         health = PlayerPrefs.GetInt("health", 1);
         damage = PlayerPrefs.GetInt("damage", 1);
-        UIManager.Instance.SetPanel(GameState.Play);
+        isPlayed = PlayerPrefs.GetInt("isPlayed", 0);
+        soldiersNumber = PlayerPrefs.GetInt("soldiersNumber", 2);
+        UIManager.Instance.SetPanel();
         LoadLevel();
         TinySauce.OnGameStarted(level.ToString());
     }
 
+    private void Update()
+    {
+        if (gameState == GameState.Start && (Input.GetMouseButtonDown(0) || Input.GetKeyDown(KeyCode.Space)))
+        {
+            UIManager.Instance.SetPanel(GameState.Play);
+            GameController.Instance.ActivateAgents();
+        }
+  
+    }
 
     public void Win()
     {
@@ -51,6 +65,8 @@ public class GameManager : MonoBehaviour
         gameState = GameState.Win;
         confetti.Play();
         StartCoroutine(EnableWinPanel());
+        isPlayed = 1;
+        PlayerPrefs.SetInt("isPlayed", isPlayed);
         TinySauce.OnGameFinished(true, 1, level.ToString());
     }
 
@@ -65,6 +81,8 @@ public class GameManager : MonoBehaviour
         GameController.Instance.StopAgents();
         GameController.Instance.SetWinAnimationToAgents();
         UIManager.Instance.SetPanel(GameState.Lose);
+        isPlayed = 1;
+        PlayerPrefs.SetInt("isPlayed", isPlayed);
         TinySauce.OnGameFinished(false, 1, level.ToString());
     }
 
@@ -84,7 +102,7 @@ public class GameManager : MonoBehaviour
         SceneManager.LoadScene(0);
         LoadLevel();
     }
-    
+
     private void LoadLevel()
     {
         var l = level;
@@ -106,6 +124,8 @@ public class GameManager : MonoBehaviour
         GameController.Instance.SpawnPlayers(rounds.playerTroops[0]);
         GameController.Instance.SpawnEnemies(rounds.enemyTroops[0]);
         if (selectedLevel.hasTutorial) LoadTutorial();
+        
+        if (isPlayed == 1) UIManager.Instance.SetPanel(GameState.Upgrade);
     }
 
     private static int SelectColor(int l)
@@ -143,6 +163,7 @@ public class GameManager : MonoBehaviour
         PlayerPrefs.SetFloat("speed", speed);
         PlayerPrefs.SetInt("reward", reward);
         AudioManager.Instance.PlaySound(AudioManager.Instance.upgrade);
+        GameController.Instance.PlayBlastEffect();
     }
 
     public void UpgradeHealth()
@@ -164,5 +185,30 @@ public class GameManager : MonoBehaviour
         if (tutorialIndex < tuts.Count) UIManager.Instance.tutorials[tutorialIndex].SetActive(true);
         if (tutorialIndex != 0) UIManager.Instance.tutorials[tutorialIndex - 1].SetActive(false);
         tutorialIndex++;
+    }
+
+    public void UpgradeArmy()
+    {
+        var nbr = soldiersNumber * 10 + 5;
+        if (nbr > reward) return;
+        soldiersNumber += 1;
+        reward -= nbr;
+        UIManager.Instance.SetUpgradePrices();
+        PlayerPrefs.SetInt("soldiersNumber", soldiersNumber);
+        PlayerPrefs.SetInt("reward", reward);
+        AudioManager.Instance.PlaySound(AudioManager.Instance.upgrade);
+        GameController.Instance.AddPlayer();
+    }
+
+    public void CloseUpgradePanel()
+    {
+        AudioManager.Instance.Vibrate();
+        AudioManager.Instance.PlaySound(AudioManager.Instance.click);
+        UIManager.Instance.SetPanel();
+    }
+
+    private void OnApplicationQuit()
+    {
+        PlayerPrefs.SetInt("isPlayed", 0);
     }
 }

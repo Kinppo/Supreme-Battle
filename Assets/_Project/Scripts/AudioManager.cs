@@ -39,7 +39,7 @@ public class AudioManager : MonoBehaviour
 
     public void PlaySound(AudioClip clip)
     {
-        if (source.clip != null && timePlaying < source.clip.length) return;
+        if (source.clip != null && timePlaying < source.clip.length && clip != click) return;
         source.clip = clip;
         source.Play();
     }

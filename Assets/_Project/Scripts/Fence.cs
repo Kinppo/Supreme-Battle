@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 
@@ -6,7 +7,7 @@ public class Fence : MonoBehaviour
     public new Renderer renderer;
     public BoxCollider coll;
     public float maxSize = 1.56f;
-    [HideInInspector] public bool isDestroyed;
+    [HideInInspector] public bool isInitiated;
     private float sizeZ = 4.53f;
     private float scaleZ;
     private Vector3 pointB;
@@ -17,6 +18,21 @@ public class Fence : MonoBehaviour
         //if (coll != null) sizeZ = coll.size.z;
     }
 
+    private void Update()
+    {
+        if (isInitiated)
+        {
+            isInitiated = false;
+            Invoke(nameof(UpdateMaterial), 0.1f);
+        }
+    }
+    
+    private void UpdateMaterial()
+    {
+        renderer.material.color = InputManager.Instance.fenceColors[1];
+
+    }
+    
     public void RotateFence(Vector3 point)
     {
         var pointA = transform.position;

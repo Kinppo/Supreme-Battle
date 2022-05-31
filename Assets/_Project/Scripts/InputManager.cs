@@ -87,14 +87,14 @@ public class InputManager : MonoBehaviour
             fence.RotateFence(new Vector3(pos.x, 0.5f, pos.z));
             fence.gameObject.layer = 11;
             fence.coll.size += new Vector3(0, 0, -0.9f);
+            fence.isInitiated = true;
             GameController.Instance.UpdateNaveMesh();
-
+        
             if (GameManager.Instance.selectedLevel.hasTutorial && GameManager.Instance.tutorialIndex == 2)
                 GameManager.Instance.LoadTutorial();
         }
         else
         {
-            fence.isDestroyed = true;
             Destroy(fence.gameObject);
         }
 
